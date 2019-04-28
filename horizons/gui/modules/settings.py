@@ -20,7 +20,9 @@
 # ###################################################
 
 import os
+import subprocess
 import sys
+
 
 from fife import fife
 
@@ -187,7 +189,13 @@ class SettingsDialog(PickBeltWidget, Window):
 		if restart_required:
 			if self.restart_promt():
 				horizons.globals.fife.engine.destroy()
-				os.execv(sys.executable, [sys.executable] + sys.argv)
+				# Workaround for https://bugs.python.org/issue436259:
+				# Windows exec*/spawn* problem with spaces in args
+				if sys.platform == 'win32':
+					subprocess.call([sys.executable] + sys.argv)
+					sys.exit(0)
+				else:
+					os.execv(sys.executable, [sys.executable] + sys.argv)
 
 		self._windows.close()
 
